@@ -143,17 +143,18 @@
 <li>Replication of manual reading of text is not the goal</li>
 <li>Computer scientific models are not always useful in social sciences</li>
 </ul></li>
-<li>Analytic methods vary from simple frequency analysis to &quot;deep learning&quot;
+<li>Analytic methods vary from simple frequency analysis to neural network
 
 <ul>
 <li>Complex tools are not always the best choice</li>
-<li>Training complex model is often expensive</li>
+<li>Training complex supervised model is usually expensive</li>
+<li>Unsupervised models inexpensive but often atheoretical</li>
 </ul></li>
 </ul>
 
 </article></slide><slide class=""><hgroup><h2>Challenges in developing text analysis models</h2></hgroup><article  id="challenges-in-developing-text-analysis-models">
 
-<p>Large corpus is often needed to find interesting patters.</p>
+<p>We usually need a large corpus to find interesting patterns.</p>
 
 <ul>
 <li>Textual data is a typical high-dimensional data
@@ -428,7 +429,7 @@ dgmt@i</pre>
 <pre >## [[1]]
 ## [1] 8 9</pre>
 
-</article></slide><slide class=""><hgroup><h2>Converting pattern to fixed</h2></hgroup><article  id="converting-pattern-to-fixed">
+</article></slide><slide class=""><hgroup><h2>Converting regex to type ID</h2></hgroup><article  id="converting-regex-to-type-id">
 
 <pre class = 'prettyprint lang-r'>pattern2id(&quot;^wha.*&quot;, types(toks), &quot;regex&quot;, TRUE)</pre>
 
@@ -446,7 +447,7 @@ dgmt@i</pre>
 ## [[2]]
 ## [1] &quot;whale&quot;</pre>
 
-</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+</article></slide><slide class=""><hgroup><h2>Converting glob to type ID</h2></hgroup><article  id="converting-glob-to-type-id">
 
 <pre class = 'prettyprint lang-r'>pattern2id(&quot;wha*&quot;, types(toks), &quot;glob&quot;, TRUE)</pre>
 
@@ -575,20 +576,19 @@ ndoc(corp)</pre>
 
 <pre >## [1] 156980</pre>
 
-<pre class = 'prettyprint lang-r'>month &lt;- c(&#39;January&#39;, &#39;February&#39;, &#39;March&#39;, &#39;April&#39;, &#39;May&#39;, &#39;June&#39;,
-           &#39;July&#39;, &#39;August&#39;, &#39;September&#39;, &#39;October&#39;, &#39;November&#39;, &#39;December&#39;)
-day &lt;- c(&#39;Sunday&#39;, &#39;Monday&#39;, &#39;Tuesday&#39;, &#39;Wednesday&#39;, &#39;Thursday&#39;, &#39;Friday&#39;, &#39;Saturday&#39;)
-agency &lt;- c(&#39;AP&#39;, &#39;AFP&#39;, &#39;Reuters&#39;)
-
+<pre class = 'prettyprint lang-r'>month &lt;- c(&quot;January&quot;, &quot;February&quot;, &quot;March&quot;, &quot;April&quot;, &quot;May&quot;, &quot;June&quot;,
+           &quot;July&quot;, &quot;August&quot;, &quot;September&quot;, &quot;October&quot;, &quot;November&quot;, &quot;December&quot;)
+day &lt;- c(&quot;Sunday&quot;, &quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, &quot;Friday&quot;, &quot;Saturday&quot;)
+agency &lt;- c(&quot;AP&quot;, &quot;AFP&quot;, &quot;Reuters&quot;)
 toks &lt;- tokens(corp) %&gt;% 
-        tokens_remove(stopwords(&#39;english&#39;), valuetype = &#39;fixed&#39;, padding = TRUE) %&gt;% 
-        tokens_remove(c(month, day, agency), valuetype = &#39;fixed&#39;, padding = TRUE)</pre>
+        tokens_remove(stopwords(&quot;en&quot;), valuetype = &quot;fixed&quot;, padding = TRUE) %&gt;% 
+        tokens_remove(c(month, day, agency), valuetype = &quot;fixed&quot;, padding = TRUE)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Fit the Newsmap model</h2></hgroup><article  id="fit-the-newsmap-model">
 
 <pre class = 'prettyprint lang-r'>label_mt &lt;- dfm(tokens_lookup(toks, data_dictionary_newsmap_en, levels = 3))
 feat_mt &lt;- dfm(toks, tolower = FALSE) %&gt;% 
-           dfm_select(selection = &quot;keep&quot;, &#39;^[A-Z][A-Za-z1-2]+&#39;, valuetype = &#39;regex&#39;, 
+           dfm_select(selection = &quot;keep&quot;, &quot;^[A-Z][A-Za-z1-2]+&quot;, valuetype = &quot;regex&quot;, 
                       case_insensitive = FALSE) %&gt;% 
            dfm_trim(min_termfreq = 10)
 

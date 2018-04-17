@@ -38,13 +38,14 @@ We want to discover *theoretically interesting* patterns in a corpus of texts fr
 - The same technology but different goals from natural language processing (NLP)
     - Replication of manual reading of text is not the goal
     - Computer scientific models are not always useful in social sciences 
-- Analytic methods vary from simple frequency analysis to "deep learning"
+- Analytic methods vary from simple frequency analysis to neural network
     - Complex tools are not always the best choice
-    - Training complex model is often expensive
+    - Training complex supervised model is usually expensive
+    - Unsupervised models inexpensive but often atheoretical
 
 ## Challenges in developing text analysis models
 
-Large corpus is often needed to find interesting patters.
+We usually need a large corpus to find interesting patterns.
 
 - Textual data is a typical high-dimensional data
     - In matrix representation (document-feature matrix or DFM) of texts 
@@ -190,13 +191,16 @@ pattern2id("dolphine", types(toks), "fixed", TRUE)
 pattern2id(c("dolphine", "whale"), types(toks), "fixed", TRUE)
 pattern2id(phrase("killer whale"), types(toks), "fixed", TRUE)
 ```
-## Converting pattern to fixed
+
+## Converting regex to type ID
 
 ```{r}
 pattern2id("^wha.*", types(toks), "regex", TRUE)
 pattern2fixed("^wha.*", types(toks), "regex", TRUE)
 ```
----
+
+## Converting glob to type ID
+
 ```{r}
 pattern2id("wha*", types(toks), "glob", TRUE)
 pattern2fixed("wha*", types(toks), "glob", TRUE)
@@ -264,14 +268,13 @@ corp_full <- corpus(data, text_field = 'text')
 corp <- corpus_subset(corp_full, '2014-01-01' <= date & date <= '2014-12-31')
 ndoc(corp)
 
-month <- c('January', 'February', 'March', 'April', 'May', 'June',
-           'July', 'August', 'September', 'October', 'November', 'December')
-day <- c('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')
-agency <- c('AP', 'AFP', 'Reuters')
-
+month <- c("January", "February", "March", "April", "May", "June",
+           "July", "August", "September", "October", "November", "December")
+day <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+agency <- c("AP", "AFP", "Reuters")
 toks <- tokens(corp) %>% 
-        tokens_remove(stopwords('english'), valuetype = 'fixed', padding = TRUE) %>% 
-        tokens_remove(c(month, day, agency), valuetype = 'fixed', padding = TRUE)
+        tokens_remove(stopwords("en"), valuetype = "fixed", padding = TRUE) %>% 
+        tokens_remove(c(month, day, agency), valuetype = "fixed", padding = TRUE)
 ```
 
 ## Fit the Newsmap model
@@ -279,7 +282,7 @@ toks <- tokens(corp) %>%
 ```{r}
 label_mt <- dfm(tokens_lookup(toks, data_dictionary_newsmap_en, levels = 3))
 feat_mt <- dfm(toks, tolower = FALSE) %>% 
-           dfm_select(selection = "keep", '^[A-Z][A-Za-z1-2]+', valuetype = 'regex', 
+           dfm_select(selection = "keep", "^[A-Z][A-Za-z1-2]+", valuetype = "regex", 
                       case_insensitive = FALSE) %>% 
            dfm_trim(min_termfreq = 10)
 
