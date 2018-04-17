@@ -1,0 +1,25 @@
+aside.gdbar {
+    background: none !important;
+    position: relative !important;
+    width: 300px !important;
+    -webkit-transition: opacity 0.6s ease-in;
+    -webkit-transition-delay: 0.6s;
+    -moz-transition: opacity 0.6s ease-in 0.6s;
+    -o-transition: opacity 0.6s ease-in 0.6s;
+    transition: opacity 0.6s ease-in 0.6s;
+}
+
+aside.gdbar img {
+    width: 300px;
+    height: auto;
+}
+
+slides > slide:not(.nobackground):before {
+    display: none;
+}
+
+article > pre {
+    width: 100% !important;
+    left: 0 !important;
+    padding: 10px 0 10px 20px
+}

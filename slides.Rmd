@@ -1,0 +1,438 @@
+---
+title: "Building text analysis models using Quanteda"
+author: "Kohei Watanabe (LSE)"
+date: "19 April 2018"
+output: 
+    ioslides_presentation:
+        css: images/ioslides_styles.css
+        logo: images/quanteda-logo.png
+        widescreen: true
+        toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, cache=TRUE)
+require(quanteda)
+```
+
+# Introduction
+
+## What is Quanteda?
+
+**quanteda** is an R package for quantitative text analysis developed by a team based at the LSE.
+
+- After 5 years of development, we released version 1.0 at London R meeting in January
+- Used by leading political scientists in North America, Europe and Asia
+- It is a stand-alone tool, but can be used to develop packages (e.g. **politeness**, **preText**, **phrasemachine**, **tidytext**, **stm**.
+- Quanteda Initiative CIC was founded to support the text analysts community
+    
+    ```{r echo=FALSE, out.height="80px", out.width="auto"}
+    knitr::include_graphics("images/qi-logo.png")
+    ```
+
+
+## Why we need to develop text analysis models?
+
+We want to discover *theoretically interesting* patterns in a corpus of texts from a social scientific point of view.
+
+- The same technology but different goals from natural language processing (NLP)
+    - Replication of manual reading of text is not the goal
+    - Computer scientific models are not always useful in social sciences 
+- Analytic methods vary from simple frequency analysis to "deep learning"
+    - Complex tools are not always the best choice
+    - Training complex model is often expensive
+
+## Challenges in developing text analysis models
+
+Large corpus is often needed to find interesting patters.
+
+- Textual data is a typical high-dimensional data
+    - In matrix representation (document-feature matrix or DFM) of texts 
+        - Each word is a variable (columns)
+        - Each document is an observation (rows)
+    
+- Textual data is extremely sparse (99% or more)
+    - Occurrences of important features are rare
+    - Co-occurrences of interesting words are even rarer
+    
+## Example: non-rectangular structure
+
+Tokenized texts are *non-rectangular*
+
+```{r echo=FALSE}
+txt <- c("What is it?", "That is a dolphine.", "No, it is a killer whale!")
+print(txt)
+as.list(tokens(txt, remove_punct = TRUE))
+```
+
+## Example: data sparsity
+
+Document-feature matrix is *sparse*
+
+```{r echo=FALSE}
+print(txt)
+as.matrix(dfm(txt, remove_punct = TRUE))
+```
+
+## You needs special tools for large text data
+
+We need *very efficient tools* to process large sparse matrices.
+    
+- **Base R** functions do not work well with non-rectangular/sparse data
+    - `character` is not memory efficient when vectors are short
+    - `data.frame` does not allow variables in different length (rectangular data)
+    - `matrix` records both zero and non-zero values (dense matrix)
+
+# Quanteda's design
+
+## Quanteda's special objects: tokens
+
+**quanteda** has `tokens` for tokenized texts.
+
+```{r}
+toks <- tokens(txt, remove_punct = TRUE)
+print(toks)
+```
+
+## Quanteda's special objects: dfm
+
+**quanteda** has `dfm` for document-feature matrix.
+
+```{r}
+mt <- dfm(toks)
+print(mt)
+```
+
+## Quanteda's functions: tokens_\* and dfm_\*
+
+**quanteda** has number of specialized methods for `tokens` and `dfm`.
+
+- `tokens`
+    - `tokens_select()` select tokens by patterns
+    - `tokens_compound()` compound multiple tokens into single token
+    - `tokens_lookup()` find dictionary words
+- `dfm`
+    - `dfm_select()` select features by patterns
+    - `dfm_lookup()` find dictionary words
+    - `dfm_group()` group multiple words into single document 
+
+Complete list of **quanteda**'s function is available at [documentation site](https://docs.quanteda.io/reference/).
+    
+## Unpacking tokens
+
+`tokens` is an extension of `list` (S3).
+
+```{r}
+str(unclass(toks))
+```
+
+## Unpacking dfm
+
+`dfm` inherits `Matrix::dgCMatrix` (S4).
+
+```{r}
+mt@Dim
+mt@Dimnames
+```
+---
+```{r}
+mt@i
+mt@p
+```
+
+# Core APIs
+
+## Creating tokens
+
+```{r}
+as.tokens(list(c("I", "like", "dogs"),
+               c("He", "likes", "cats")))
+toks %>% as.list() %>% as.tokens() %>% class()
+```
+
+## Creating dfm
+
+```{r}
+as.dfm(matrix(c(1, 0, 2, 1), nrow = 2, 
+              dimnames = list(c("doc1", "doc2"), 
+                              c("dogs", "cats"))))
+```
+---
+```{r}
+as.dfm(rbind("doc" = c(3, 4)))
+
+mt %>% as.matrix() %>% as.dfm() %>% class()
+```
+
+## Convert dfm to Matrix
+
+```{r}
+as(mt, "dgCMatrix")
+as(mt, "dgTMatrix")
+```
+---
+```{r}
+dgmt <- as(mt, "dgTMatrix")
+dgmt@i
+dgmt@j
+dgmt@x
+```
+
+
+## Converting pattern to type ID
+
+```{r}
+types(toks)
+pattern2id("dolphine", types(toks), "fixed", TRUE)
+```
+---
+```{r}
+pattern2id(c("dolphine", "whale"), types(toks), "fixed", TRUE)
+pattern2id(phrase("killer whale"), types(toks), "fixed", TRUE)
+```
+## Converting pattern to fixed
+
+```{r}
+pattern2id("^wha.*", types(toks), "regex", TRUE)
+pattern2fixed("^wha.*", types(toks), "regex", TRUE)
+```
+---
+```{r}
+pattern2id("wha*", types(toks), "glob", TRUE)
+pattern2fixed("wha*", types(toks), "glob", TRUE)
+```
+
+## Using ID to subset ojbects
+
+```{r}
+featnames(mt)
+id <- pattern2id("wha*", featnames(mt), "glob", TRUE)
+mt[,unlist(id)]
+```
+
+# Example 1: Newsmap
+
+## Newsmap
+
+**newsmap** is another semi-supervised model for geographical document classification originally created for [International Newsmap](http://newsmap.koheiw.net).
+
+- **newsmap** identify features associated with location using seed dictionary
+    - **newsmap** extract not only names of places but also names of people and organizations
+    - Geographical classifier can be updated frequently without additional costs
+- We have to perform dictionary analysis very accurately for **newsmap**
+    - Place names are often comprised of multiple words (multi-word expressions)
+    - Seed dictionaries are in multiple languages (English, German, Spanish, Japanese, Russian)
+
+## Newsmap algorithm
+
+**newsmap** is a semi-supervised multi-nominal naive Bayes classifier.
+
+1. Search `tokens` for place names in seed dictionary
+2. Compute association between geographical features and dictionary keys
+3. Predict geographical focus of documents
+
+## Seed dictionary
+
+```{r include=FALSE}
+# devtools::install_github("koheiw/newsmap")
+require(newsmap)
+```
+```{r}
+data_dictionary_newsmap_en[["AMERICA"]]["NORTH"]
+```
+---
+```{r}
+data_dictionary_newsmap_de[["AMERICA"]]["NORTH"]
+```
+---
+```{r}
+data_dictionary_newsmap_ja[["AMERICA"]]["NORTH"]
+```
+
+## Pre-processing
+
+```{r eval=FALSE, include=FALSE}
+# Data is available at
+# https://www.dropbox.com/s/uvbyrsz8c7w1p6t/data_corpus_yahoonews.RDS?dl=1
+```
+
+```{r}
+data <- readRDS("/home/kohei/Dropbox/Public/data_corpus_yahoonews.RDS")
+data$text <- paste0(data$head, ". ", data$body)
+data$body <- NULL
+corp_full <- corpus(data, text_field = 'text')
+corp <- corpus_subset(corp_full, '2014-01-01' <= date & date <= '2014-12-31')
+ndoc(corp)
+
+month <- c('January', 'February', 'March', 'April', 'May', 'June',
+           'July', 'August', 'September', 'October', 'November', 'December')
+day <- c('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')
+agency <- c('AP', 'AFP', 'Reuters')
+
+toks <- tokens(corp) %>% 
+        tokens_remove(stopwords('english'), valuetype = 'fixed', padding = TRUE) %>% 
+        tokens_remove(c(month, day, agency), valuetype = 'fixed', padding = TRUE)
+```
+
+## Fit the Newsmap model
+
+```{r}
+label_mt <- dfm(tokens_lookup(toks, data_dictionary_newsmap_en, levels = 3))
+feat_mt <- dfm(toks, tolower = FALSE) %>% 
+           dfm_select(selection = "keep", '^[A-Z][A-Za-z1-2]+', valuetype = 'regex', 
+                      case_insensitive = FALSE) %>% 
+           dfm_trim(min_termfreq = 10)
+
+newsmap <- textmodel_newsmap(feat_mt, label_mt)
+summary(newsmap, n = 10)
+```
+---
+```{r fig.height=4, fig.width=10}
+tb <- table(predict(newsmap))
+barplot(head(sort(tb, decreasing = TRUE), 20))
+```
+
+
+## Unpacking newsmap package
+
+Newsmap package uses **quanteda** APIs in both estimation and prediction.
+
+- `dfm_group()` groups documents based on labels [`r icon::fa("file-code-o") `](https://github.com/koheiw/newsmap/blob/d4eecb61176800af673463504d566f563402ddea/R/textmodel_newsmap.R#L83)
+- `dfm_select()` makes features identical to the model [`r icon::fa("file-code-o") `](https://github.com/koheiw/newsmap/blob/d4eecb61176800af673463504d566f563402ddea/R/textmodel_newsmap.R#L132)
+- `dfm_weight()` normalizes feature frequencies [`r icon::fa("file-code-o") `]( https://github.com/koheiw/newsmap/blob/d4eecb61176800af673463504d566f563402ddea/R/textmodel_newsmap.R#L133)
+
+# Example 2: LSS
+
+## LSS package
+
+**LSS** implements a semi-supervised document scaling model created based on **quanteda** to perform theory-driven analysis at low costs.
+
+- **LSS** allow researchers to position documents on an arbitrary dimension
+    - Full-supervised scaling models are often too expensive to train (e.g. Wordscore)
+    - Unsupervised scaling models tend to produce atheoretical results (e.g. Wordfish)
+- **LSS** requires large corpus to accurately estimate semantic relations
+    - It has to handle extremely sparse matrix
+
+## LSS algorithm
+
+LSS (latent semantic scaling) is an application of LSA (latent semantic analysis) in document scaling
+
+1. Construct a document-feature matrix from a large corpus (> 5000 documents)
+2. Reduce the feature dimension to 300 using SVD (latent semantic space)
+3. Weight terms based on their proximity to seed words in the semantic space
+4. Predict positions of documents on a linear scale as weighted means of the terms
+
+```{r include=FALSE}
+# devtools::install_github("koheiw/LSS")
+require(LSS)
+```
+
+## Sentiment seed words
+
+```{r}
+seedwords('pos-neg')
+```
+
+## Other types of seed words
+
+```{r}
+# concern
+c("concern*", "worr*", "anxi*")
+
+# dysfunction
+c("dysfunct*", "paralysi*", "stalemate", "standstill", "gridlock", "deadlock") 
+```
+
+## Pre-processing
+
+In LSS, documents are split into sentences to estimate semantic proximity based on immediate contexts of words. This makes document-feature matrix is extremely sparse.
+
+```{r eval=FALSE, include=FALSE}
+# Data is available at
+# https://www.dropbox.com/s/kfhdoifes7z7t6j/data_corpus_guardian2016-10k.RDS?dl=1
+```
+
+```{r}
+corp <- readRDS("/home/kohei/Dropbox/Public/data_corpus_guardian2016-10k.RDS")
+sent_toks <- 
+    corp %>% 
+    corpus_reshape("sentences") %>% 
+    tokens(remove_punct = TRUE) %>% 
+    tokens_remove(stopwords("en")) %>% 
+    tokens_select("^[0-9a-zA-Z]+$", valuetype = "regex")
+sent_mt <- 
+    sent_toks %>% 
+    dfm() %>% 
+    dfm_trim(min_termfreq = 5)
+```
+---
+```{r}
+ndoc(corp)
+ndoc(sent_mt)
+sparsity(sent_mt)
+```
+
+## Fit LSS model
+
+```{r message=FALSE}
+eco <- head(char_keyness(sent_toks, 'econom*'), 500)
+head(eco, 30)
+lss <- textmodel_lss(sent_mt, seedwords('pos-neg'), features = eco, cache = TRUE)
+```
+---
+```{r}
+head(coef(lss), 30)
+```
+---
+```{r}
+tail(coef(lss), 30)
+```
+
+## Predicting economic sentiment
+
+```{r}
+doc_mt <- dfm(corp)
+data_pred <- as.data.frame(predict(lss, newdata = doc_mt, density = TRUE))
+data_pred$date <- docvars(doc_mt, 'date')
+data_pred <- subset(data_pred, density > quantile(density, 0.25))
+
+head(data_pred)
+```
+---
+```{r fig.height=4, fig.width=10}
+par(mar = c(4, 4, 1, 1))
+plot(data_pred$date, data_pred$fit, pch = 16, col = rgb(0, 0, 0, 0.1),
+     ylim = c(-0.5, 0.5), ylab = "Economic sentiment", xlab = "Time")
+lines(lowess(data_pred$date, data_pred$fit, f = 0.1), col = 1)
+abline(h = 0, v = as.Date("2016-06-23"), lty = c(1, 3))
+```
+
+## Unpacking LSS package
+
+LSS package is implemented using **RSpectra**'s SVD engine and **quanteda**'s APIs.
+
+- `as.dfm()` converts a SVD-reduced matrix to a `dfm` [`r icon::fa("file-code-o") `](https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L85)
+- `pattern2fixed()` converts seed words' glob to fixed patterns [`r icon::fa("file-code-o")`](https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L158)
+- `textstat_simil()` computes term-term similarity between seed words and features [`r icon::fa("file-code-o") `](https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L145)
+
+# Conclusions
+
+## For you own text models
+
+**quanteda**'s APIs help you to quickly develop your own models
+
+- `pattern2regex()` help you to handle patterns, multi-word expressions and Unicode characters
+- `tokens_*()` and `dfm_*()` are optimized for large textual data
+- `tokens` and `dfm` objects can be created using `as.tokens()` and `as.dfm()`
+
+You can also contribute to develop **quanteda**
+
+- If **quanteda** is missing important functions, file a feature request or pull request
+- Quanteda Initiative will host **quanteda** extension packages (e.g. **quanteda.newsmpa**) to give more publicity
+
+## Additional materials
+
+- [Quanteda Documentation](https://docs.quanteda.io/)
+- [Quanteda Tutorials](https://tutorials.quanteda.io/)
+- [Peronal website](https://koheiw.net)
+
