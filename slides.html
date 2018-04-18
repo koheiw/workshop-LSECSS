@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-19" />
+  <meta name="date" content="2018-04-18" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -113,7 +113,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">19 April 2018</p>
+            <p style="margin-top: 6px; margin-left: -2px;">18 April 2018</p>
           </hgroup>
   </slide>
 
@@ -137,7 +137,7 @@
 <p>We want to discover <em>theoretically interesting</em> patterns in a corpus of texts from a social scientific point of view.</p>
 
 <ul>
-<li>The same technology but different goals from natural language processing (NLP)
+<li>The same technology as natural language processing (NLP) but for different goals
 
 <ul>
 <li>Replication of manual reading of text is not the goal</li>
@@ -204,7 +204,7 @@
 ##   text2    0  1  0    1 1        1  0      0     0
 ##   text3    0  1  1    0 1        0  1      1     1</pre>
 
-</article></slide><slide class=""><hgroup><h2>You needs special tools for large text data</h2></hgroup><article  id="you-needs-special-tools-for-large-text-data">
+</article></slide><slide class=""><hgroup><h2>We need special tools for large text data</h2></hgroup><article  id="we-need-special-tools-for-large-text-data">
 
 <p>We need <em>very efficient tools</em> to process large sparse matrices.</p>
 
@@ -254,7 +254,7 @@ print(mt)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Quanteda&#39;s functions: tokens_* and dfm_*</h2></hgroup><article  id="quantedas-functions-tokens_-and-dfm_">
 
-<p><strong>quanteda</strong> has number of specialized methods for <code>tokens</code> and <code>dfm</code>.</p>
+<p><strong>quanteda</strong> has many specialized methods for <code>tokens</code> and <code>dfm</code>.</p>
 
 <ul>
 <li><code>tokens</code>
@@ -487,13 +487,13 @@ mt[,unlist(id)]</pre>
 
 </article></slide><slide class=""><hgroup><h2>Newsmap</h2></hgroup><article  id="newsmap">
 
-<p><strong>newsmap</strong> is another semi-supervised model for geographical document classification originally created for <a href='http://newsmap.koheiw.net' title=''>International Newsmap</a>.</p>
+<p><strong>newsmap</strong> is a semi-supervised model for geographical document classification originally created for <a href='http://newsmap.koheiw.net' title=''>International Newsmap</a>.</p>
 
 <ul>
-<li><strong>newsmap</strong> identify features associated with location using seed dictionary
+<li><strong>newsmap</strong> identifies features associated with location using seed dictionary
 
 <ul>
-<li><strong>newsmap</strong> extract not only names of places but also names of people and organizations</li>
+<li><strong>newsmap</strong> extracts not only names of places but also names of people and organizations</li>
 <li>Geographical classifier can be updated frequently without additional costs</li>
 </ul></li>
 <li>We have to perform dictionary analysis very accurately for <strong>newsmap</strong>
@@ -506,11 +506,11 @@ mt[,unlist(id)]</pre>
 
 </article></slide><slide class=""><hgroup><h2>Newsmap algorithm</h2></hgroup><article  id="newsmap-algorithm">
 
-<p><strong>newsmap</strong> is a semi-supervised multi-nominal naive Bayes classifier.</p>
+<p><strong>newsmap</strong> is a semi-supervised multi-nomial naive Bayes classifier.</p>
 
 <ol>
-<li>Search <code>tokens</code> for place names in seed dictionary</li>
-<li>Compute association between geographical features and dictionary keys</li>
+<li>Search <code>tokens</code> for place names to assign country labels (weak supervision)</li>
+<li>Compute association between geographical features and country labels</li>
 <li>Predict geographical focus of documents</li>
 </ol>
 
@@ -567,7 +567,7 @@ mt[,unlist(id)]</pre>
 
 </article></slide><slide class=""><hgroup><h2>Pre-processing</h2></hgroup><article  id="pre-processing">
 
-<pre class = 'prettyprint lang-r'>data &lt;- readRDS(&quot;/home/kohei/Dropbox/Public/data_corpus_yahoonews.RDS&quot;)
+<pre class = 'prettyprint lang-r'>data &lt;- readRDS(&quot;/home/kohei/Dropbox/Public/data_corpus_yahoonews.rds&quot;)
 data$text &lt;- paste0(data$head, &quot;. &quot;, data$body)
 data$body &lt;- NULL
 corp_full &lt;- corpus(data, text_field = &#39;text&#39;)
@@ -611,7 +611,7 @@ barplot(head(sort(tb, decreasing = TRUE), 20))</pre>
 
 </article></slide><slide class=""><hgroup><h2>Unpacking newsmap package</h2></hgroup><article  id="unpacking-newsmap-package">
 
-<p>Newsmap package uses <strong>quanteda</strong> APIs in both estimation and prediction.</p>
+<p><strong>newsmap</strong> uses <strong>quanteda</strong> APIs in both estimation and prediction.</p>
 
 <ul>
 <li><code>dfm_group()</code> groups documents based on labels <a href='https://github.com/koheiw/newsmap/blob/d4eecb61176800af673463504d566f563402ddea/R/textmodel_newsmap.R#L83' title=''><i class="fa  fa-file-code-o "></i></a></li>
@@ -623,7 +623,7 @@ barplot(head(sort(tb, decreasing = TRUE), 20))</pre>
 
 </article></slide><slide class=""><hgroup><h2>LSS package</h2></hgroup><article  id="lss-package">
 
-<p><strong>LSS</strong> implements a semi-supervised document scaling model created based on <strong>quanteda</strong> to perform theory-driven analysis at low costs.</p>
+<p><strong>LSS</strong> implements a semi-supervised document scaling model created based on <strong>quanteda</strong> to perform <em>theory-driven analysis at low costs</em>.</p>
 
 <ul>
 <li><strong>LSS</strong> allow researchers to position documents on an arbitrary dimension
@@ -676,9 +676,9 @@ c(&quot;dysfunct*&quot;, &quot;paralysi*&quot;, &quot;stalemate&quot;, &quot;sta
 
 </article></slide><slide class=""><hgroup><h2>Pre-processing</h2></hgroup><article  id="pre-processing-1">
 
-<p>In LSS, documents are split into sentences to estimate semantic proximity based on immediate contexts of words. This makes document-feature matrix is extremely sparse.</p>
+<p>In LSS, documents are split into sentences to estimate semantic proximity based on immediate contexts of words. This makes document-feature matrix <em>extremely sparse</em>.</p>
 
-<pre class = 'prettyprint lang-r'>corp &lt;- readRDS(&quot;/home/kohei/Dropbox/Public/data_corpus_guardian2016-10k.RDS&quot;)
+<pre class = 'prettyprint lang-r'>corp &lt;- readRDS(&quot;/home/kohei/Dropbox/Public/data_corpus_guardian2016-10k.rds&quot;)
 sent_toks &lt;- 
     corp %&gt;% 
     corpus_reshape(&quot;sentences&quot;) %&gt;% 
@@ -705,6 +705,8 @@ sent_mt &lt;-
 <pre >## [1] 0.9996725</pre>
 
 </article></slide><slide class=""><hgroup><h2>Fit LSS model</h2></hgroup><article  id="fit-lss-model">
+
+<p><strong>lss</strong> performs feature selection based on collocation to construct domain-specific sentiment models.</p>
 
 <pre class = 'prettyprint lang-r'>eco &lt;- head(char_keyness(sent_toks, &#39;econom*&#39;), 500)
 head(eco, 30)</pre>
@@ -785,33 +787,35 @@ abline(h = 0, v = as.Date(&quot;2016-06-23&quot;), lty = c(1, 3))</pre>
 <li><code>as.dfm()</code> converts a SVD-reduced matrix to a <code>dfm</code> <a href='https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L85' title=''><i class="fa  fa-file-code-o "></i></a></li>
 <li><code>pattern2fixed()</code> converts seed words&#39; glob to fixed patterns <a href='https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L158' title=''><i class="fa  fa-file-code-o "></i></a></li>
 <li><code>textstat_simil()</code> computes term-term similarity between seed words and features <a href='https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L145' title=''><i class="fa  fa-file-code-o "></i></a></li>
+<li><code>textstat_keyness()</code> performs chi-squre tests for collocations <a href='https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L255' title=''><i class="fa  fa-file-code-o "></i></a></li>
 </ul>
 
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Conclusions</h2></hgroup><article  id="conclusions">
 
-</article></slide><slide class=""><hgroup><h2>For you own text models</h2></hgroup><article  id="for-you-own-text-models">
+</article></slide><slide class=""><hgroup><h2>For your own text models</h2></hgroup><article  id="for-your-own-text-models">
 
-<p><strong>quanteda</strong>&#39;s APIs help you to quickly develop your own models</p>
+<p><strong>quanteda</strong>&#39;s APIs help you to quickly develop your own models.</p>
 
 <ul>
 <li><code>pattern2regex()</code> help you to handle patterns, multi-word expressions and Unicode characters</li>
-<li><code>tokens_*()</code> and <code>dfm_*()</code> are optimized for large textual data</li>
 <li><code>tokens</code> and <code>dfm</code> objects can be created using <code>as.tokens()</code> and <code>as.dfm()</code></li>
+<li><code>tokens_*()</code> and <code>dfm_*()</code> are optimized for large textual data</li>
+<li><code>textstat_*</code> are useful as packages&#39; internal functions</li>
 </ul>
 
-<p>You can also contribute to develop <strong>quanteda</strong></p>
+<p>You can also contribute to development of <strong>quanteda</strong>.</p>
 
 <ul>
 <li>If <strong>quanteda</strong> is missing important functions, file a feature request or pull request</li>
-<li>Quanteda Initiative will host <strong>quanteda</strong> extension packages (e.g. <strong>quanteda.newsmpa</strong>) to give more publicity</li>
+<li>QI&#39;s Github account will host your <strong>quanteda</strong> extension packages (e.g. <strong>quanteda.newsmpa</strong>) to give more publicity</li>
 </ul>
 
 </article></slide><slide class=""><hgroup><h2>Additional materials</h2></hgroup><article  id="additional-materials">
 
 <ul>
-<li><a href='https://docs.quanteda.io/' title=''>Quanteda Documentation</a></li>
-<li><a href='https://tutorials.quanteda.io/' title=''>Quanteda Tutorials</a></li>
-<li><a href='https://koheiw.net' title=''>Peronal website</a></li>
+<li>Quanteda Documentation: <a href='https://docs.quanteda.io' title=''>https://docs.quanteda.io</a></li>
+<li>Quanteda Tutorials: <a href='https://tutorials.quanteda.io' title=''>https://tutorials.quanteda.io</a></li>
+<li>My peronal website: <a href='https://koheiw.net' title=''>https://koheiw.net</a></li>
 </ul></article></slide>
 
 

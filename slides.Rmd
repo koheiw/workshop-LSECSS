@@ -1,13 +1,12 @@
 ---
 title: "Building text analysis models using Quanteda"
 author: "Kohei Watanabe (LSE)"
-date: "19 April 2018"
+date: "18 April 2018"
 output: 
     ioslides_presentation:
         css: images/ioslides_styles.css
         logo: images/quanteda-logo.png
         widescreen: true
-        toc: true
 ---
 
 ```{r setup, include=FALSE}
@@ -35,7 +34,7 @@ require(quanteda)
 
 We want to discover *theoretically interesting* patterns in a corpus of texts from a social scientific point of view.
 
-- The same technology but different goals from natural language processing (NLP)
+- The same technology as natural language processing (NLP) but for different goals 
     - Replication of manual reading of text is not the goal
     - Computer scientific models are not always useful in social sciences 
 - Analytic methods vary from simple frequency analysis to neural network
@@ -75,7 +74,7 @@ print(txt)
 as.matrix(dfm(txt, remove_punct = TRUE))
 ```
 
-## You needs special tools for large text data
+## We need special tools for large text data
 
 We need *very efficient tools* to process large sparse matrices.
     
@@ -106,7 +105,7 @@ print(mt)
 
 ## Quanteda's functions: tokens_\* and dfm_\*
 
-**quanteda** has number of specialized methods for `tokens` and `dfm`.
+**quanteda** has many specialized methods for `tokens` and `dfm`.
 
 - `tokens`
     - `tokens_select()` select tokens by patterns
@@ -218,10 +217,10 @@ mt[,unlist(id)]
 
 ## Newsmap
 
-**newsmap** is another semi-supervised model for geographical document classification originally created for [International Newsmap](http://newsmap.koheiw.net).
+**newsmap** is a semi-supervised model for geographical document classification originally created for [International Newsmap](http://newsmap.koheiw.net).
 
-- **newsmap** identify features associated with location using seed dictionary
-    - **newsmap** extract not only names of places but also names of people and organizations
+- **newsmap** identifies features associated with location using seed dictionary
+    - **newsmap** extracts not only names of places but also names of people and organizations
     - Geographical classifier can be updated frequently without additional costs
 - We have to perform dictionary analysis very accurately for **newsmap**
     - Place names are often comprised of multiple words (multi-word expressions)
@@ -229,10 +228,10 @@ mt[,unlist(id)]
 
 ## Newsmap algorithm
 
-**newsmap** is a semi-supervised multi-nominal naive Bayes classifier.
+**newsmap** is a semi-supervised multi-nomial naive Bayes classifier.
 
-1. Search `tokens` for place names in seed dictionary
-2. Compute association between geographical features and dictionary keys
+1. Search `tokens` for place names to assign country labels (weak supervision)
+2. Compute association between geographical features and country labels
 3. Predict geographical focus of documents
 
 ## Seed dictionary
@@ -257,11 +256,11 @@ data_dictionary_newsmap_ja[["AMERICA"]]["NORTH"]
 
 ```{r eval=FALSE, include=FALSE}
 # Data is available at
-# https://www.dropbox.com/s/uvbyrsz8c7w1p6t/data_corpus_yahoonews.RDS?dl=1
+# https://www.dropbox.com/s/uvbyrsz8c7w1p6t/data_corpus_yahoonews.rds?dl=1
 ```
 
 ```{r}
-data <- readRDS("/home/kohei/Dropbox/Public/data_corpus_yahoonews.RDS")
+data <- readRDS("/home/kohei/Dropbox/Public/data_corpus_yahoonews.rds")
 data$text <- paste0(data$head, ". ", data$body)
 data$body <- NULL
 corp_full <- corpus(data, text_field = 'text')
@@ -298,7 +297,7 @@ barplot(head(sort(tb, decreasing = TRUE), 20))
 
 ## Unpacking newsmap package
 
-Newsmap package uses **quanteda** APIs in both estimation and prediction.
+**newsmap** uses **quanteda** APIs in both estimation and prediction.
 
 - `dfm_group()` groups documents based on labels [`r icon::fa("file-code-o") `](https://github.com/koheiw/newsmap/blob/d4eecb61176800af673463504d566f563402ddea/R/textmodel_newsmap.R#L83)
 - `dfm_select()` makes features identical to the model [`r icon::fa("file-code-o") `](https://github.com/koheiw/newsmap/blob/d4eecb61176800af673463504d566f563402ddea/R/textmodel_newsmap.R#L132)
@@ -308,7 +307,7 @@ Newsmap package uses **quanteda** APIs in both estimation and prediction.
 
 ## LSS package
 
-**LSS** implements a semi-supervised document scaling model created based on **quanteda** to perform theory-driven analysis at low costs.
+**LSS** implements a semi-supervised document scaling model created based on **quanteda** to perform *theory-driven analysis at low costs*.
 
 - **LSS** allow researchers to position documents on an arbitrary dimension
     - Full-supervised scaling models are often too expensive to train (e.g. Wordscore)
@@ -348,15 +347,15 @@ c("dysfunct*", "paralysi*", "stalemate", "standstill", "gridlock", "deadlock")
 
 ## Pre-processing
 
-In LSS, documents are split into sentences to estimate semantic proximity based on immediate contexts of words. This makes document-feature matrix is extremely sparse.
+In LSS, documents are split into sentences to estimate semantic proximity based on immediate contexts of words. This makes document-feature matrix *extremely sparse*.
 
 ```{r eval=FALSE, include=FALSE}
 # Data is available at
-# https://www.dropbox.com/s/kfhdoifes7z7t6j/data_corpus_guardian2016-10k.RDS?dl=1
+# https://www.dropbox.com/s/kfhdoifes7z7t6j/data_corpus_guardian2016-10k.rds?dl=1
 ```
 
 ```{r}
-corp <- readRDS("/home/kohei/Dropbox/Public/data_corpus_guardian2016-10k.RDS")
+corp <- readRDS("/home/kohei/Dropbox/Public/data_corpus_guardian2016-10k.rds")
 sent_toks <- 
     corp %>% 
     corpus_reshape("sentences") %>% 
@@ -376,6 +375,8 @@ sparsity(sent_mt)
 ```
 
 ## Fit LSS model
+
+**lss** performs feature selection based on collocation to construct domain-specific sentiment models.
 
 ```{r message=FALSE}
 eco <- head(char_keyness(sent_toks, 'econom*'), 500)
@@ -417,25 +418,27 @@ LSS package is implemented using **RSpectra**'s SVD engine and **quanteda**'s AP
 - `as.dfm()` converts a SVD-reduced matrix to a `dfm` [`r icon::fa("file-code-o") `](https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L85)
 - `pattern2fixed()` converts seed words' glob to fixed patterns [`r icon::fa("file-code-o")`](https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L158)
 - `textstat_simil()` computes term-term similarity between seed words and features [`r icon::fa("file-code-o") `](https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L145)
+- `textstat_keyness()` performs chi-squre tests for collocations [`r icon::fa("file-code-o") `](https://github.com/koheiw/LSS/blob/5b94768ba089e142332c9b202a52cf021dde4154/R/textmodel_lss.R#L255)
 
 # Conclusions
 
-## For you own text models
+## For your own text models
 
-**quanteda**'s APIs help you to quickly develop your own models
+**quanteda**'s APIs help you to quickly develop your own models.
 
 - `pattern2regex()` help you to handle patterns, multi-word expressions and Unicode characters
-- `tokens_*()` and `dfm_*()` are optimized for large textual data
 - `tokens` and `dfm` objects can be created using `as.tokens()` and `as.dfm()`
+- `tokens_*()` and `dfm_*()` are optimized for large textual data
+- `textstat_*` are useful as packages' internal functions
 
-You can also contribute to develop **quanteda**
+You can also contribute to development of **quanteda**.
 
 - If **quanteda** is missing important functions, file a feature request or pull request
-- Quanteda Initiative will host **quanteda** extension packages (e.g. **quanteda.newsmpa**) to give more publicity
+- QI's Github account will host your **quanteda** extension packages (e.g. **quanteda.newsmpa**) to give more publicity
 
 ## Additional materials
 
-- [Quanteda Documentation](https://docs.quanteda.io/)
-- [Quanteda Tutorials](https://tutorials.quanteda.io/)
-- [Peronal website](https://koheiw.net)
+- Quanteda Documentation: https://docs.quanteda.io
+- Quanteda Tutorials: https://tutorials.quanteda.io
+- My peronal website: https://koheiw.net
 
