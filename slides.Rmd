@@ -426,7 +426,7 @@ LSS package is implemented using **RSpectra**'s SVD engine and **quanteda**'s AP
 
 **quanteda**'s APIs help you to quickly develop your own models.
 
-- `pattern2regex()` help you to handle patterns, multi-word expressions and Unicode characters
+- `pattern2id()` helps you to handle patterns, multi-word expressions and Unicode characters
 - `tokens` and `dfm` objects can be created using `as.tokens()` and `as.dfm()`
 - `tokens_*()` and `dfm_*()` are optimized for large textual data
 - `textstat_*` are useful as packages' internal functions
