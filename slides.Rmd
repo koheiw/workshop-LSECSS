@@ -440,5 +440,5 @@ You can also contribute to development of **quanteda**.
 
 - Quanteda Documentation: https://docs.quanteda.io
 - Quanteda Tutorials: https://tutorials.quanteda.io
-- My peronal website: https://koheiw.net
+- My personal website: https://koheiw.net
 
