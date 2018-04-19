@@ -434,7 +434,7 @@ LSS package is implemented using **RSpectra**'s SVD engine and **quanteda**'s AP
 You can also contribute to development of **quanteda**.
 
 - If **quanteda** is missing important functions, file a feature request or pull request
-- QI's Github account will host your **quanteda** extension packages (e.g. **quanteda.newsmpa**) to give more publicity
+- QI's Github account will host your **quanteda** extension packages (e.g. **quanteda.newsmap**) to give more publicity
 
 ## Additional materials
 
